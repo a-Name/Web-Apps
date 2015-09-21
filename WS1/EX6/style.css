@@ -23,3 +23,14 @@ table{
   border: 3px solid #F27935;
   border-radius: 15px;
 }
+td.modif{
+  border-radius: 10px;
+  background-color: #66CC99;
+  font-size: 22px;
+}
+td.name{
+  border-radius: 10px;
+  background-color: #9B59B6;
+  font-size: 22px;
+}
+td{width : 15%;}
