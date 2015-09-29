@@ -1,0 +1,33 @@
+{
+	"title": "Schema leboncoin",
+	"type": "object",
+	"properties": {
+		"Bra": {
+      "description": "Marque",
+			"type": "string"
+		},
+		"Mdl": {
+      "description": "Modèle",
+			"type": "string"
+		},
+		"Yer": {
+			"description": "Année d'achat de la voiture",
+			"type": "integer",
+			"minimum": 0
+		},
+    "Klm":{
+      "description": "Kilomètres parcourus",
+      "type": "integer",
+			"minimum": 0
+    },
+    "Ful":{
+      "description": "Carburant utilisé",
+      "type": "string"
+    },
+    "Ger":{
+      "description": "Type de boite de vitesse",
+      "type": "string"
+    }
+	},
+	"required": ["Bra", "Mdl","Yer","Klm","Ful","Ger"]
+}

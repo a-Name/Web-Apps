@@ -1,0 +1,38 @@
+{
+	"title": "Schema lacentrale",
+	"type": "object",
+	"properties": {
+		"Bra": {
+      "description": "Marque",
+			"type": "string"
+		},
+		"Mdl": {
+      "description": "Modèle",
+			"type": "string"
+		},
+		"Yer": {
+			"description": "Année de parution du véhicule",
+			"type": "integer",
+			"minimum": 0
+		},
+    "Pwr":{
+      "description": "Puissance fiscale du moteur",
+      "type": "integer",
+			"minimum": 0
+    },
+    "Ful":{
+      "description": "Type de carburant",
+      "type": "string"
+    },
+    "Ger":{
+      "description": "Type de boite de vitesse",
+      "type": "string"
+    },
+    "Dor":{
+      "description": "Nombre de portes",
+      "type": "integer",
+			"minimum": 0
+    }
+	},
+	"required": ["Bra", "Mdl","Yer"]
+}
