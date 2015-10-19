@@ -1,0 +1,31 @@
+{
+  "name": "labonnecote",
+  "version": "1.0.0",
+  "description": "Argus cote for LeBonCoin",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "deasync": "0.1.3"
+  },
+  "engines": {
+    "node": "0.12.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heroku/labonnecote.git"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/heroku/labonnecote/issues"
+  },
+  "homepage": "https://github.com/heroku/labonnecote#readme",
+  "devDependencies": {},
+  "author": "Bruno"
+}

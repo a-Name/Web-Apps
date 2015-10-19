@@ -29,5 +29,5 @@
       "type": "string"
     }
 	},
-	"required": ["Bra", "Mdl","Yer","Klm","Ful","Ger"]
+	"required": ["Yer","Klm","Ful","Ger"]
 }
