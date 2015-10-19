@@ -101,9 +101,9 @@ var server = http.createServer(function(request, response) {
   response.end();
 });
 var port = Number(process.env.PORT || 3000);
-//server.listen(8080);
 server.listen(port);
-console.log("Server is listening");
+//server.listen(8080);
+console.log("Server is listening on port "+port);
 
 var SelectCars = function(datalbc, datalct){
   var out = [];
