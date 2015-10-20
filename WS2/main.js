@@ -24,7 +24,8 @@ css += "#txtbx{font-size:16px; color:#CF000F;}"
 css += "</style>";
 
 var load_hide='<script>document.getElementById("loading").style.display = "none";</script>';
-var submit_button = '<br/><br/><div id="txtbx"><input type="checkbox" name="kilometer_accuracy" value="ok"> Prendre en compte le kilométrage (plus long)</div>'+"<br/><input id='submit' type='submit' value='Envoyer!'></form>";
+var submit_button = '<div id="txtbx"><br/><br/><input type="checkbox" name="kilometer_accuracy" value="ok"> Prendre en compte le kilométrage (plus long)</div>'+"<br/><input id='submit' type='submit' value='Envoyer!'></form>";
+var hide_button = '<script>document.getElementById("txtbx").style.display = "none";document.getElementById("submit").style.display = "none";</script>'
 
 var server = http.createServer(function(request, response) {
   var arg = urltostring(request);
@@ -42,66 +43,72 @@ var server = http.createServer(function(request, response) {
       response.write("Problème de connexion au serveur Le Bon Coin, réessayez plus tard . . . ");
     }
     else{
-      if(arg.indexOf("&brand=")>-1){
-        if(arg.indexOf("&model=")>-1){lbc_out.Bra = arg.substring(arg.indexOf("&brand=")+7,arg.indexOf("&model="));}
-        else{lbc_out.Bra = arg.substring(arg.indexOf("&brand=")+7,arg.lastIndexOf("&"));}
-      }
-      if(arg.indexOf("&model=")>-1){lbc_out.Mdl = arg.substring(arg.indexOf("&model=")+7,arg.lastIndexOf("&"));}
-      lbc_out.Bra = lbc_out.Bra.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
-      lbc_out.Mdl = lbc_out.Mdl.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
-      if(lbc_out.Bra==="notfound" || lbc_out.Mdl==="notfound"){
-        response.write('<script>document.getElementById("submit").style.display = "none";</script>');
+      if(lbc_out==="no car found"){
         response.write(load_hide);
-        if(lbc_out.Bra==="notfound"){response.write("<br/>Veuillez renseigner la marque du véhicule : <input type='text' name='brand'><br/>");}
-        if(lbc_out.Mdl==="notfound"){response.write("Veuillez renseigner le modèle du véhicule : <input type='text' name='model'><br/>");}
-        response.write(submit_button);
+        response.write("Ce lien est invalide !");
       }
       else{
-        var lct_out = lacentrale("http://www.lacentrale.fr/cote-voitures-" + lbc_out.Bra + "-" + lbc_out.Mdl + "--" + lbc_out.Yer + "-.html");
-        if(lct_out==="errorunknlct" || lct_out==="errorconnlct"){
+        if(arg.indexOf("&brand=")>-1){
+          if(arg.indexOf("&model=")>-1){lbc_out.Bra = arg.substring(arg.indexOf("&brand=")+7,arg.indexOf("&model="));}
+          else{lbc_out.Bra = arg.substring(arg.indexOf("&brand=")+7,arg.lastIndexOf("&"));}
+        }
+        if(arg.indexOf("&model=")>-1){lbc_out.Mdl = arg.substring(arg.indexOf("&model=")+7,arg.lastIndexOf("&"));}
+        lbc_out.Bra = lbc_out.Bra.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
+        lbc_out.Mdl = lbc_out.Mdl.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
+        if(lbc_out.Bra==="notfound" || lbc_out.Mdl==="notfound"){
+          response.write(hide_button);
           response.write(load_hide);
-          if(lct_out==="errorunknlct"){response.write("Problème avec le serveur distant, réessayez plus tard . . . ");}
-          if(lct_out==="errorconnlct"){response.write("Problème de connexion au serveur distant, réessayez plus tard . . . ");}
+          if(lbc_out.Bra==="notfound"){response.write("Veuillez renseigner la marque du véhicule : <input type='text' name='brand'><br/>");}
+          if(lbc_out.Mdl==="notfound"){response.write("Veuillez renseigner le modèle du véhicule : <input type='text' name='model'><br/>");}
+          response.write(submit_button);
         }
         else{
-          var lct_out = SelectCars(lbc_out, lct_out);
-
-          if(arg.indexOf("kilometer_accuracy")===-1){
-            var cote_out = []; // value with 0Km
-            for(var i=0;i<lct_out.length;i++){cote_out[i] = lct_out[i][6];}
+          var lct_out = lacentrale("http://www.lacentrale.fr/cote-voitures-" + lbc_out.Bra + "-" + lbc_out.Mdl + "--" + lbc_out.Yer + "-.html");
+          if(lct_out==="errorunknlct" || lct_out==="errorconnlct"){
+            response.write(load_hide);
+            if(lct_out==="errorunknlct"){response.write("Problème avec le serveur distant, réessayez plus tard . . . ");}
+            if(lct_out==="errorconnlct"){response.write("Problème de connexion au serveur distant, réessayez plus tard . . . ");}
           }
           else{
-            var cote_out = cote(lbc_out, lct_out); // acurracy with Km doesn't work
-          }
+            var lct_out = SelectCars(lbc_out, lct_out);
 
-          response.write(load_hide);
-          if(cote_out.length===0){
-            if(lbc_out.Yer==="2015"){response.write("Ce véhicule est trop récent et n'est pas encore coté à l'ARGUS . . . ");}
-            else{response.write("Nous n'avons pas trouvé de correspondance pour ce véhicule . . . ");}
-          }
-          else if(cote_out.length===1){response.write("Cote du véhicule : <b>"+cote_out[0]+"€</b>");}
-          else{
-            var mean;
-            var sum = 0;
-            var count = 0;
-            for(var i=0; i<cote_out.length; i++){
-              cote_out[i] = parseInt(cote_out[i].toString().replace(/ /g,""));
-              sum += cote_out[i];
-              count++;
+            if(arg.indexOf("kilometer_accuracy")===-1){
+              var cote_out = []; // value with 0Km
+              for(var i=0;i<lct_out.length;i++){cote_out[i] = lct_out[i][6];}
             }
-            mean = sum/count;
-            response.write(count+" cotes correspondent à ce véhicule.<br/>");
-            response.write("Moyenne des cotes trouvées : <b>"+parseInt(mean)+"€</b>");
-            response.write('<br/><br/><span id="showHide">Plus de détails . . . </span><br/><br/><div id="foo" style="display:none">');
-            response.write('<table id=foo>');
-            response.write('<tr id=cat class=darker><td><b>Dénomination</b></td><td><b>Puissance</b></td><td><b>Portes</b></td><td><b>Cote</b></td></tr>');
-            for(var i=0; i<cote_out.length; i++){
-              if((i%2) === 0){response.write("<tr>");}
-              else{response.write("<tr class=darker>");}
-              response.write('<td><b>'+lct_out[i][5]+'</b></td><td>'+lct_out[i][2]+'cv</td><td>'+lct_out[i][4]+'</td><td><b>'+cote_out[i]+'€</b></td></tr>');
+            else{
+              var cote_out = cote(lbc_out, lct_out); // acurracy with Km doesn't work
             }
-            response.write('</table>');
-            response.write('</div><script>document.getElementById("showHide").onclick = function() {var theDiv = document.getElementById("foo");if(theDiv.style.display == "none") {theDiv.style.display = "block";this.innerHTML = "Moins de détails . . . ";} else {theDiv.style.display = "none";this.innerHTML = "Plus de détails . . . ";}}</script>');
+
+            response.write(load_hide);
+            if(cote_out.length===0){
+              if(lbc_out.Yer==="2015"){response.write("Ce véhicule est trop récent et n'est pas encore coté à l'ARGUS . . . ");}
+              else{response.write("Nous n'avons pas trouvé de correspondance pour ce véhicule . . . ");}
+            }
+            else if(cote_out.length===1){response.write("Cote du véhicule : <b>"+cote_out[0]+"€</b>");}
+            else{
+              var mean;
+              var sum = 0;
+              var count = 0;
+              for(var i=0; i<cote_out.length; i++){
+                cote_out[i] = parseInt(cote_out[i].toString().replace(/ /g,""));
+                sum += cote_out[i];
+                count++;
+              }
+              mean = sum/count;
+              response.write(count+" cotes correspondent à ce véhicule.<br/>");
+              response.write("Moyenne des cotes trouvées : <b>"+parseInt(mean)+"€</b>");
+              response.write('<br/><br/><span id="showHide">Plus de détails . . . </span><br/><br/><div id="foo" style="display:none">');
+              response.write('<table id=foo>');
+              response.write('<tr id=cat class=darker><td><b>Dénomination</b></td><td><b>Puissance</b></td><td><b>Portes</b></td><td><b>Cote</b></td></tr>');
+              for(var i=0; i<cote_out.length; i++){
+                if((i%2) === 0){response.write("<tr>");}
+                else{response.write("<tr class=darker>");}
+                response.write('<td><b>'+lct_out[i][5]+'</b></td><td>'+lct_out[i][2]+'cv</td><td>'+lct_out[i][4]+'</td><td><b>'+cote_out[i]+'€</b></td></tr>');
+              }
+              response.write('</table>');
+              response.write('</div><script>document.getElementById("showHide").onclick = function() {var theDiv = document.getElementById("foo");if(theDiv.style.display == "none") {theDiv.style.display = "block";this.innerHTML = "Moins de détails . . . ";} else {theDiv.style.display = "none";this.innerHTML = "Plus de détails . . . ";}}</script>');
+            }
           }
         }
       }
