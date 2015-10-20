@@ -20,10 +20,11 @@ css += "#foo td{padding-right:10px; padding-left:10px; font-size:20px;}";
 css += "form p{font-size:32px; color:#22A7F0; margin:0; margin-bottom:1%;}";
 css += "form{font-size:25px;}";
 css += "#showHide{color:#CF000F; cursor:pointer; font-size:20px;}";
+css += "#txtbx{font-size:16px; color:#CF000F;}"
 css += "</style>";
 
 var load_hide='<script>document.getElementById("loading").style.display = "none";</script>';
-var submit_button = "<input id='submit' type='submit' value='Envoyer!'></form>";
+var submit_button = '<br/><br/><div id="txtbx"><input type="checkbox" name="kilometer_accuracy" value="ok"> Prendre en compte le kilométrage (plus long)</div>'+"<br/><input id='submit' type='submit' value='Envoyer!'></form>";
 
 var server = http.createServer(function(request, response) {
   var arg = urltostring(request);
@@ -63,11 +64,15 @@ var server = http.createServer(function(request, response) {
           if(lct_out==="errorconnlct"){response.write("Problème de connexion au serveur distant, réessayez plus tard . . . ");}
         }
         else{
-        var lct_out = SelectCars(lbc_out, lct_out);
+          var lct_out = SelectCars(lbc_out, lct_out);
 
-        //var cote_out = cote(lbc_out, lct_out); // acurracy with Km doesn't work
-        var cote_out = []; // value with 0Km
-        for(var i=0;i<lct_out.length;i++){cote_out[i] = lct_out[i][6];}
+          if(arg.indexOf("kilometer_accuracy")===-1){
+            var cote_out = []; // value with 0Km
+            for(var i=0;i<lct_out.length;i++){cote_out[i] = lct_out[i][6];}
+          }
+          else{
+            var cote_out = cote(lbc_out, lct_out); // acurracy with Km doesn't work
+          }
 
           response.write(load_hide);
           if(cote_out.length===0){
@@ -80,7 +85,7 @@ var server = http.createServer(function(request, response) {
             var sum = 0;
             var count = 0;
             for(var i=0; i<cote_out.length; i++){
-              cote_out[i] = parseInt(cote_out[i].replace(/ /g,""));
+              cote_out[i] = parseInt(cote_out[i].toString().replace(/ /g,""));
               sum += cote_out[i];
               count++;
             }
@@ -102,7 +107,7 @@ var server = http.createServer(function(request, response) {
       }
     }
   }
-  else{response.write("<input size='40' type='text' name='link'><input type='submit' value='Envoyer!'></form>");}
+  else{response.write("<input size='40' type='text' name='link'>"+submit_button);}
   response.write("</body></html>");
   response.end();
 });
