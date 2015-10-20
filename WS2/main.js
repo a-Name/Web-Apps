@@ -1,6 +1,6 @@
 var leboncoin = require('./leboncoin.js');
 var lacentrale = require('./lacentrale.js');
-//var cote = require('./cote.js');
+var cote = require('./cote.js');
 var http = require("http");
 var url = require("url");
 
@@ -22,6 +22,9 @@ css += "form{font-size:25px;}";
 css += "#showHide{color:#CF000F; cursor:pointer; font-size:20px;}";
 css += "</style>";
 
+var load_hide='<script>document.getElementById("loading").style.display = "none";</script>';
+var submit_button = "<input id='submit' type='submit' value='Envoyer!'></form>";
+
 var server = http.createServer(function(request, response) {
   var arg = urltostring(request);
   response.write("<!DOCTYPE 'html'><html><head><title>ARGUS Le Bon Coin</title><meta charset='UTF-8'/>"+css+"</head><body><h1>La Bonne Cote</h1><h2>L'ARGUS des annonces Le Bon Coin</h2><form><p>Entrez l'URL de l'annonce : </p>");
@@ -30,9 +33,11 @@ var server = http.createServer(function(request, response) {
     if(link.indexOf("www.")===-1){link = "www."+link;}
     if(link.indexOf("http://")===-1){link = "http://"+link;}
     response.write("<input size='40' type='text' value='"+ link +"' name='link'>");
+    response.write(submit_button);
+    response.write("<div id=loading>Veuillez patienter, votre demande est en cours de traitement . . . </div>");
     var lbc_out = leboncoin(link);
     if(lbc_out==="errorconnlbc"){
-      response.write("<input type='submit' value='Envoyer!'></form>");
+      response.write(load_hide);
       response.write("Problème de connexion au serveur Le Bon Coin, réessayez plus tard . . . ");
     }
     else{
@@ -44,15 +49,16 @@ var server = http.createServer(function(request, response) {
       lbc_out.Bra = lbc_out.Bra.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
       lbc_out.Mdl = lbc_out.Mdl.toLowerCase().replace(/ /g,"+").replace(/-/g,"_").replace(/%c3%a9/g,"e");
       if(lbc_out.Bra==="notfound" || lbc_out.Mdl==="notfound"){
+        response.write('<script>document.getElementById("submit").style.display = "none";</script>');
+        response.write(load_hide);
         if(lbc_out.Bra==="notfound"){response.write("<br/>Veuillez renseigner la marque du véhicule : <input type='text' name='brand'><br/>");}
         if(lbc_out.Mdl==="notfound"){response.write("Veuillez renseigner le modèle du véhicule : <input type='text' name='model'><br/>");}
-        response.write("<br/><input type='submit' value='Envoyer!'></form>");
+        response.write(submit_button);
       }
       else{
-        response.write("<input type='submit' value='Envoyer!'></form>");
-        response.write("<div id=loading>Veuillez patienter, votre demande est en cours de traitement . . . </div>");
         var lct_out = lacentrale("http://www.lacentrale.fr/cote-voitures-" + lbc_out.Bra + "-" + lbc_out.Mdl + "--" + lbc_out.Yer + "-.html");
         if(lct_out==="errorunknlct" || lct_out==="errorconnlct"){
+          response.write(load_hide);
           if(lct_out==="errorunknlct"){response.write("Problème avec le serveur distant, réessayez plus tard . . . ");}
           if(lct_out==="errorconnlct"){response.write("Problème de connexion au serveur distant, réessayez plus tard . . . ");}
         }
@@ -63,7 +69,7 @@ var server = http.createServer(function(request, response) {
         var cote_out = []; // value with 0Km
         for(var i=0;i<lct_out.length;i++){cote_out[i] = lct_out[i][6];}
 
-          response.write('</div><script>document.getElementById("loading").style.display = "none";</script>');
+          response.write(load_hide);
           if(cote_out.length===0){
             if(lbc_out.Yer==="2015"){response.write("Ce véhicule est trop récent et n'est pas encore coté à l'ARGUS . . . ");}
             else{response.write("Nous n'avons pas trouvé de correspondance pour ce véhicule . . . ");}
