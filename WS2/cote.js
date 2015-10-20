@@ -8,7 +8,8 @@ module.exports = function(datalbc,datalct) {
     });
     while(sync) {require('deasync').sleep(100);}
     console.log("returning COTE...");
-    return (data);
+    console.log(data);
+    return(data);
 }
 
 var GetCote = function(datalbc, datalct, callback){
@@ -20,6 +21,7 @@ var GetCote = function(datalbc, datalct, callback){
     link = CreateKmLink(datalct[i], datalbc);
     http.get(link, function(res) {
       res.pipe(bl(function (err, data) {
+        var data_old = data;
         var dts = data.toString();
         if(dts.length===30){data_out="errorconnlct";}
         else{data_out.push(FindCote(dts));}
